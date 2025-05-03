@@ -9,7 +9,7 @@
 //! package.
 //!
 //! ```
-//! use passes::{resource, sign, Package, PassBuilder, PassConfig};
+//! use neopasses::{resource, sign, Package, PassBuilder, PassConfig};
 //! use std::{fs::File, path::Path};
 //!
 //! // Creating a pass
@@ -46,7 +46,7 @@
 //! std::io::Read::read_to_end(&mut file_sign_key_cert, &mut sign_cert_key_data).unwrap();
 //!
 //! let sign_config =
-//!     sign::SignConfig::new(passes::sign::WWDR::G4, &sign_cert_data, &sign_cert_key_data)
+//!     sign::SignConfig::new(neopasses::sign::WWDR::G4, &sign_cert_data, &sign_cert_key_data)
 //!         .unwrap();
 //! package.add_certificates(sign_config);
 //! ```
@@ -67,3 +67,5 @@ mod pass;
 // Re-exports
 pub use self::package::*;
 pub use self::pass::*;
+// Python bindings module
+mod python_bindings;

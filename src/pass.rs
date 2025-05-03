@@ -49,7 +49,7 @@ pub struct PassConfig {
 /// Example for making [Pass] with [PassConfig]:
 ///
 /// ```
-/// use passes::{PassBuilder, PassConfig};
+/// use neopasses::{PassBuilder, PassConfig};
 /// let pass = PassBuilder::new(PassConfig {
 ///     organization_name: String::from("Apple inc."),
 ///     description: String::from("Example pass"),
@@ -189,7 +189,7 @@ impl Pass {
     /// Build JSON output for pass (pass.json)
     ///
     /// ```
-    /// use passes::{PassConfig, PassBuilder};
+    /// use neopasses::{PassConfig, PassBuilder};
     ///
     /// let pass = PassBuilder::new(PassConfig {
     ///     organization_name: String::from("Apple inc."),
@@ -228,7 +228,7 @@ impl Pass {
     /// Build pass (pass.json) from json data
     ///
     /// ```
-    /// use passes::Pass;
+    /// use neopasses::Pass;
     ///
     /// let json_expected = r#"{
     ///   "formatVersion": 1,
@@ -317,7 +317,7 @@ impl PassBuilder {
     ///
     /// ```
     /// use chrono::prelude::*;
-    /// use passes::{PassBuilder, PassConfig};
+    /// use neopasses::{PassBuilder, PassConfig};
     ///
     /// let pass = PassBuilder::new(PassConfig {
     ///     organization_name: String::from("Apple inc."),
@@ -411,7 +411,7 @@ impl PassBuilder {
     /// Adding [semantics](Pass::semantics)
     ///
     /// ```
-    /// use passes::{PassBuilder, PassConfig, semantic_tags};
+    /// use neopasses::{PassBuilder, PassConfig, semantic_tags};
     ///
     /// let pass = PassBuilder::new(PassConfig {
     ///     organization_name: String::from("Apple inc."),
@@ -437,7 +437,7 @@ impl PassBuilder {
     /// Adding [fields](Pass::fields)
     ///
     /// ```
-    /// use passes::{PassBuilder, PassConfig, fields};
+    /// use neopasses::{PassBuilder, PassConfig, fields};
     ///
     /// let pass = PassBuilder::new(PassConfig {
     ///     organization_name: String::from("Apple inc."),

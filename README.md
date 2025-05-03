@@ -21,7 +21,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-passes = "0.1.0"
+neopasses = "0.1.0"
 ```
 
 ## Example

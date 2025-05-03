@@ -1,0 +1,30 @@
+[build-system]
+requires = ["maturin>=1.0"]
+build-backend = "maturin"
+
+[tool.maturin]
+bindings = "pyo3"
+name = "passes_rs_py"
+
+[project]
+name = "passes_rs_py"
+version = "2.0.0-alpha1"
+description = "Rust library for generate Apple Wallet Passes for iOS, WatchOS, MacOS."
+readme = "README.md"
+license = { text = "MIT" }
+authors = [
+    { name = "Mark Vodyanitskiy", email = "mvodya@icloud.com" },
+    { name = "Jstyles", email = "jstyles@styl.dev" },
+]
+keywords = ["passkit", "wallet", "apple"]
+classifiers = [
+    "Programming Language :: Rust",
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+    "License :: OSI Approved :: MIT License",
+]
+requires-python = ">=3.12"
+
+[project.urls]
+Homepage = "https://github.com/jontyms/neo-passes-rs"
+Repository = "https://github.com/jontyms/neo-passes-rs"

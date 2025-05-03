@@ -150,19 +150,16 @@ impl FromStr for Type {
                 Version::Standard
             };
 
-            if let Ok(image_type_str) = captures["type"].parse::<String>() {
-                // Match type & version
-                match image_type_str.as_str() {
-                    "background" => Ok(Type::Background(version)),
-                    "footer" => Ok(Type::Footer(version)),
-                    "icon" => Ok(Type::Icon(version)),
-                    "logo" => Ok(Type::Logo(version)),
-                    "strip" => Ok(Type::Strip(version)),
-                    "thumbnail" => Ok(Type::Thumbnail(version)),
-                    _ => Err(()),
-                }
-            } else {
-                Err(())
+            let image_type_str = &captures["type"];
+            // Match type & version
+            match image_type_str {
+                "background" => Ok(Type::Background(version)),
+                "footer" => Ok(Type::Footer(version)),
+                "icon" => Ok(Type::Icon(version)),
+                "logo" => Ok(Type::Logo(version)),
+                "strip" => Ok(Type::Strip(version)),
+                "thumbnail" => Ok(Type::Thumbnail(version)),
+                _ => Err(()),
             }
         } else {
             Err(())

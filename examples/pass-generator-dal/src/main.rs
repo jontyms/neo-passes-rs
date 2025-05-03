@@ -1,12 +1,12 @@
-use passes::barcode::{Barcode, BarcodeFormat};
-use passes::fields;
-use passes::resource;
-use passes::semantic_tags;
-use passes::sign;
-use passes::sign::SignConfig;
-use passes::visual_appearance;
-use passes::Package;
-use passes::{PassBuilder, PassConfig};
+use neopasses::barcode::{Barcode, BarcodeFormat};
+use neopasses::fields;
+use neopasses::resource;
+use neopasses::semantic_tags;
+use neopasses::sign;
+use neopasses::sign::SignConfig;
+use neopasses::visual_appearance;
+use neopasses::Package;
+use neopasses::{PassBuilder, PassConfig};
 
 use chrono::Duration;
 
