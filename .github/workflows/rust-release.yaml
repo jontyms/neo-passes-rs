@@ -1,0 +1,21 @@
+name: Rust Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  rust-release:
+    runs-on: ubuntu-latest
+    environment:
+      name: rust-release
+    steps:
+      - uses: actions/checkout@v4
+      - name: publish library
+        run: cargo publish  --verbose --token ${CARGO_REGISTRY_TOKEN}
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
