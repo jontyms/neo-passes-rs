@@ -1,4 +1,5 @@
-use crate::{resource, sign, Package, PassBuilder, PassConfig};
+use crate::pass::barcode::{Barcode, BarcodeFormat};
+use crate::{Package, Pass, resource, sign};
 use pyo3::prelude::*;
 use pyo3::wrap_pyfunction;
 use std::{fs::File, io::Read};
@@ -37,6 +38,7 @@ impl PyPassConfig {
     }
 }
 
+// Takes in a pass.json object as config and other options and writes a pkpass to file location
 #[pyfunction]
 #[pyo3(signature = (
     config,
@@ -44,10 +46,10 @@ impl PyPassConfig {
     key_path,
     output_path,
     icon_path = None,
-    icon2x_path = None          // ← NEW
+    icon2x_path = None,
 ))]
 fn generate_pass(
-    config: &PyPassConfig,
+    config: &str,
     cert_path: &str,
     key_path: &str,
     output_path: &str,
@@ -55,16 +57,7 @@ fn generate_pass(
     icon2x_path: Option<&str>,
 ) -> PyResult<()> {
     /* -------- build pass -------- */
-    let pass = PassBuilder::new(PassConfig {
-        organization_name: config.organization_name.clone(),
-        description: config.description.clone(),
-        pass_type_identifier: config.pass_type_identifier.clone(),
-        team_identifier: config.team_identifier.clone(),
-        serial_number: config.serial_number.clone(),
-    })
-    .grouping_identifier("com.example.pass.app".into())
-    .logo_text("Test pass".into())
-    .build();
+    let pass = Pass::from_json(config).unwrap();
 
     let mut package = Package::new(pass);
 
