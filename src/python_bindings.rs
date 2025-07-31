@@ -1,4 +1,4 @@
-use crate::pass::barcode::{Barcode, BarcodeFormat};
+// Removed unused imports: Barcode, BarcodeFormat
 use crate::{Package, Pass, resource, sign};
 use pyo3::prelude::*;
 use pyo3::wrap_pyfunction;
