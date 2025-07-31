@@ -10,7 +10,6 @@ jobs:
     runs-on: macos-latest
     environment:
       name: py-release
-    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -18,18 +17,11 @@ jobs:
           python-version: 3.12
           architecture: x64
       - uses: dtolnay/rust-toolchain@stable
-      - name: Install build dependencies
-        run: |
-          # Install perl and make for vendored OpenSSL build
-          # C compiler (clang) is already available on macOS
-          brew install perl make
       - name: Build wheels - x86_64
         uses: PyO3/maturin-action@v1
         with:
           target: x86_64
           args: --release --out dist --sdist -m Cargo.toml
-        env:
-          CARGO_BUILD_JOBS: 2
       - name: Install built wheel - x86_64
         run: |
           pip install passes_rs_py --no-index --find-links dist --force-reinstall
@@ -39,23 +31,20 @@ jobs:
         with:
           target: universal2-apple-darwin
           args: --release --out dist -m Cargo.toml
-        env:
-          CARGO_BUILD_JOBS: 2
       - name: Install built wheel - universal2
         run: |
-          pip install passes_rs_py --no-index --find-links dist --force-reinstall
+          pip install passes_rs_py --force-reinstall
           python -c "import passes_rs_py"
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
-          name: wheels-macos
+          name: wheels
           path: dist
 
   windows:
     runs-on: windows-latest
     environment:
       name: py-release
-    timeout-minutes: 60
     strategy:
       matrix:
         target: [x64, x86]
@@ -66,18 +55,11 @@ jobs:
           python-version: 3.12
           architecture: ${{ matrix.target }}
       - uses: dtolnay/rust-toolchain@stable
-      - name: Install build dependencies
-        run: |
-          # Install perl and make for vendored OpenSSL build
-          # MSVC compiler is already available via dtolnay/rust-toolchain
-          choco install strawberryperl make -y
       - name: Build wheels
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.target }}
           args: --release --out dist -m Cargo.toml
-        env:
-          CARGO_BUILD_JOBS: 2
       - name: Install built wheel
         run: |
           pip install passes_rs_py --no-index --find-links dist --force-reinstall
@@ -85,14 +67,13 @@ jobs:
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
-          name: wheels-windows-${{ matrix.target }}
+          name: wheels
           path: dist
 
   linux:
     runs-on: ubuntu-latest
     environment:
       name: py-release
-    timeout-minutes: 45
     strategy:
       matrix:
         target: [x86_64, i686]
@@ -108,12 +89,9 @@ jobs:
           target: ${{ matrix.target }}
           manylinux: auto
           before-script-linux: |
-            # Install perl, make, and C compiler for vendored OpenSSL build
-            apt update && apt install -y perl make gcc || echo "not apt"
-            yum install -y perl make gcc || echo "not yum"
+            apt install libipc-run-perl libssl-dev -y|| echo "not apt"
+            yum install openssl-devel -y|| echo "not yum"
           args: --release --out dist -m Cargo.toml -i 3.12
-        env:
-          CARGO_BUILD_JOBS: 2
       - name: Install built wheel
         if: matrix.target == 'x86_64'
         run: |
@@ -122,14 +100,13 @@ jobs:
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
-          name: wheels-linux-${{ matrix.target }}
+          name: wheels
           path: dist
 
   linux-cross:
     runs-on: ubuntu-latest
     environment:
       name: py-release
-    timeout-minutes: 60
     strategy:
       matrix:
         target: [aarch64, armv7, s390x, ppc64le, ppc64]
@@ -144,12 +121,9 @@ jobs:
           target: ${{ matrix.target }}
           manylinux: auto
           before-script-linux: |
-            # Install perl, make, and C compiler for vendored OpenSSL build
-            apt update && apt install -y perl make gcc || echo "not apt"
-            yum install -y perl make gcc || echo "not yum"
+            apt install libipc-run-perl libssl-dev -y|| echo "not apt"
+            yum install openssl-devel -y|| echo "not yum"
           args: --release --out dist -m Cargo.toml -i 3.12
-        env:
-          CARGO_BUILD_JOBS: 2
       - uses: uraimo/run-on-arch-action@v3.0.1
         if: matrix.target != 'ppc64'
         name: Install built wheel
@@ -167,14 +141,13 @@ jobs:
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
-          name: wheels-linux-cross-${{ matrix.target }}
+          name: wheels
           path: dist
 
   musllinux:
     runs-on: ubuntu-latest
     environment:
       name: py-release
-    timeout-minutes: 45
     strategy:
       matrix:
         target:
@@ -192,12 +165,9 @@ jobs:
           target: ${{ matrix.target }}
           manylinux: musllinux_1_2
           before-script-linux: |
-            # Install perl, make, and C compiler for vendored OpenSSL build
-            apt update && apt install -y perl make gcc || echo "not apt"
-            yum install -y perl make gcc || echo "not yum"
+            apt install libipc-run-perl libssl-dev -y|| echo "not apt"
+            yum install openssl-devel -y|| echo "not yum"
           args: --release --out dist -m Cargo.toml -i 3.12
-        env:
-          CARGO_BUILD_JOBS: 2
       - name: Install built wheel
         if: matrix.target == 'x86_64-unknown-linux-musl'
         uses: addnab/docker-run-action@v3
@@ -212,14 +182,13 @@ jobs:
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
-          name: wheels-musllinux-${{ matrix.target }}
+          name: wheels
           path: dist
 
   musllinux-cross:
     runs-on: ubuntu-latest
     environment:
       name: py-release
-    timeout-minutes: 60
     strategy:
       matrix:
         platform:
@@ -238,12 +207,9 @@ jobs:
           target: ${{ matrix.platform.target }}
           manylinux: musllinux_1_2
           before-script-linux: |
-            # Install perl, make, and C compiler for vendored OpenSSL build
-            apt update && apt install -y perl make gcc || echo "not apt"
-            yum install -y perl make gcc || echo "not yum"
+            apt install libipc-run-perl libssl-dev -y|| echo "not apt"
+            yum install openssl-devel -y|| echo "not yum"
           args: --release --out dist -m Cargo.toml -i 3.12
-        env:
-          CARGO_BUILD_JOBS: 2
       - uses: uraimo/run-on-arch-action@v3.0.1
         name: Install built wheel
         with:
@@ -259,7 +225,7 @@ jobs:
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
-          name: wheels-musllinux-cross-${{ matrix.platform.arch }}
+          name: wheels
           path: dist
 
   release:
@@ -272,8 +238,7 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          pattern: wheels-*
-          merge-multiple: true
+          name: wheels
       - uses: actions/setup-python@v5
         with:
           python-version: 3.12
