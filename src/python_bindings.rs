@@ -47,6 +47,16 @@ impl PyPassConfig {
     output_path,
     icon_path = None,
     icon2x_path = None,
+    logo_path = None,
+    logo2x_path = None,
+    thumbnail_path = None,
+    thumbnail2x_path = None,
+    strip_path = None,
+    strip2x_path = None,
+    background_path = None,
+    background2x_path = None,
+    footer_path = None,
+    footer2x_path = None,
 ))]
 fn generate_pass(
     config: &str,
@@ -55,6 +65,16 @@ fn generate_pass(
     output_path: &str,
     icon_path: Option<&str>,
     icon2x_path: Option<&str>,
+    logo_path: Option<&str>,
+    logo2x_path: Option<&str>,
+    thumbnail_path: Option<&str>,
+    thumbnail2x_path: Option<&str>,
+    strip_path: Option<&str>,
+    strip2x_path: Option<&str>,
+    background_path: Option<&str>,
+    background2x_path: Option<&str>,
+    footer_path: Option<&str>,
+    footer2x_path: Option<&str>,
 ) -> PyResult<()> {
     /* -------- build pass -------- */
     let pass = Pass::from_json(config).unwrap();
@@ -74,6 +94,86 @@ fn generate_pass(
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyIOError, _>(e.to_string()))?;
         package
             .add_resource(resource::Type::Icon(resource::Version::Size2X), f) // @2x
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?;
+    }
+
+    /* ---------- logos ----------- */
+    if let Some(p) = logo_path {
+        let f = File::open(p)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyIOError, _>(e.to_string()))?;
+        package
+            .add_resource(resource::Type::Logo(resource::Version::Standard), f)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?;
+    }
+    if let Some(p) = logo2x_path {
+        let f = File::open(p)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyIOError, _>(e.to_string()))?;
+        package
+            .add_resource(resource::Type::Logo(resource::Version::Size2X), f) // @2x
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?;
+    }
+
+    /* -------- thumbnails -------- */
+    if let Some(p) = thumbnail_path {
+        let f = File::open(p)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyIOError, _>(e.to_string()))?;
+        package
+            .add_resource(resource::Type::Thumbnail(resource::Version::Standard), f)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?;
+    }
+    if let Some(p) = thumbnail2x_path {
+        let f = File::open(p)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyIOError, _>(e.to_string()))?;
+        package
+            .add_resource(resource::Type::Thumbnail(resource::Version::Size2X), f) // @2x
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?;
+    }
+
+    /* ---------- strips ---------- */
+    if let Some(p) = strip_path {
+        let f = File::open(p)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyIOError, _>(e.to_string()))?;
+        package
+            .add_resource(resource::Type::Strip(resource::Version::Standard), f)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?;
+    }
+    if let Some(p) = strip2x_path {
+        let f = File::open(p)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyIOError, _>(e.to_string()))?;
+        package
+            .add_resource(resource::Type::Strip(resource::Version::Size2X), f) // @2x
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?;
+    }
+
+    /* ------- backgrounds -------- */
+    if let Some(p) = background_path {
+        let f = File::open(p)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyIOError, _>(e.to_string()))?;
+        package
+            .add_resource(resource::Type::Background(resource::Version::Standard), f)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?;
+    }
+    if let Some(p) = background2x_path {
+        let f = File::open(p)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyIOError, _>(e.to_string()))?;
+        package
+            .add_resource(resource::Type::Background(resource::Version::Size2X), f) // @2x
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?;
+    }
+
+    /* --------- footers --------- */
+    if let Some(p) = footer_path {
+        let f = File::open(p)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyIOError, _>(e.to_string()))?;
+        package
+            .add_resource(resource::Type::Footer(resource::Version::Standard), f)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?;
+    }
+    if let Some(p) = footer2x_path {
+        let f = File::open(p)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyIOError, _>(e.to_string()))?;
+        package
+            .add_resource(resource::Type::Footer(resource::Version::Size2X), f) // @2x
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?;
     }
     /* ---------------------------- */

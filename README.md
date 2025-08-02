@@ -15,6 +15,56 @@ Documentation:
 - [Examples](https://github.com/mvodya/passes-rs/tree/main/examples)
 - [Apple Wallet Documentation](https://developer.apple.com/documentation/walletpasses)
 
+## Developer Setup
+
+### Quick Start (Recommended)
+
+**macOS/Linux:**
+```bash
+chmod +x dev-setup.sh
+./dev-setup.sh
+```
+
+**Windows:**
+```cmd
+dev-setup.bat
+```
+
+This will:
+- Install Rust (if needed)
+- Install maturin (Python-Rust build tool)
+- Create a Python virtual environment
+- Build and install the package in development mode
+
+### Manual Setup
+
+1. **Install Rust:**
+   ```bash
+   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+   ```
+
+2. **Install Python dependencies:**
+   ```bash
+   pip install maturin
+   ```
+
+3. **Build for development:**
+   ```bash
+   maturin develop
+   ```
+
+4. **Test the installation:**
+   ```python
+   import passes_rs_py
+   ```
+
+### Development Commands
+
+- **Build for development:** `maturin develop`
+- **Build release wheel:** `maturin build --release`
+- **Run Rust tests:** `cargo test`
+- **Format code:** `cargo fmt`
+
 ## Usage
 
 Add this to your `Cargo.toml`:
@@ -25,6 +75,8 @@ neopasses = "0.1.0"
 ```
 
 ## Example
+
+### Rust API
 
 For building simple pass:
 
@@ -55,6 +107,47 @@ let file = match File::create(&path) {
 };
 package.write(file).unwrap();
 ```
+
+### Python Bindings
+
+The library also provides Python bindings with comprehensive asset support:
+
+```python
+from passes_rs_py import generate_pass
+
+# Generate pass with multiple asset types
+generate_pass(
+    config=pass_json_config,
+    cert_path="path/to/cert.pem",
+    key_path="path/to/key.key",
+    output_path="output.pkpass",
+    
+    # All asset types supported
+    icon_path="assets/icon.png",
+    icon2x_path="assets/icon@2x.png",
+    logo_path="assets/logo.png",
+    logo2x_path="assets/logo@2x.png",
+    thumbnail_path="assets/thumbnail.png",
+    thumbnail2x_path="assets/thumbnail@2x.png",
+    strip_path="assets/strip.png",
+    strip2x_path="assets/strip@2x.png",
+    background_path="assets/background.png",
+    background2x_path="assets/background@2x.png",
+    footer_path="assets/footer.png",
+    footer2x_path="assets/footer@2x.png",
+)
+```
+
+#### Supported Asset Types
+
+- **Icons**: `icon_path`, `icon2x_path` - Lock screen and app display
+- **Logos**: `logo_path`, `logo2x_path` - Top-left corner branding
+- **Thumbnails**: `thumbnail_path`, `thumbnail2x_path` - Field area images
+- **Strip images**: `strip_path`, `strip2x_path` - Behind primary fields
+- **Backgrounds**: `background_path`, `background2x_path` - Full pass background
+- **Footers**: `footer_path`, `footer2x_path` - Near barcode area
+
+All asset parameters are optional. See [ASSETS.md](ASSETS.md) for detailed documentation.
 
 For more examples, see [examples](https://github.com/mvodya/passes-rs/tree/main/examples) directory.
 
