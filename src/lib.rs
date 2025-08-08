@@ -61,10 +61,12 @@
 //!
 //! For more examples, see [example directory](https://github.com/mvodya/passes-rs/tree/main/examples) on GitHub.
 // Primary modules
+mod error;
 mod package;
 mod pass;
 
 // Re-exports
+pub use self::error::PassError;
 pub use self::package::*;
 pub use self::pass::*;
 // Python bindings module

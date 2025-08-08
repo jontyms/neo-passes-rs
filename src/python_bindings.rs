@@ -189,7 +189,10 @@ fn generate_pass(
         .and_then(|mut f| f.read_to_end(&mut key))
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyIOError, _>(format!("Key error: {e}")))?;
 
-    let scfg = sign::SignConfig::new(sign::WWDR::G4, &cert, &key)
+    let pem_str = std::str::from_utf8(&key).map_err(|e| {
+        PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Key is not valid UTF-8 PEM: {e}"))
+    })?;
+    let scfg = sign::SignConfig::new(&sign::WWDR::G4, &cert, pem_str)
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Sign cfg: {e}")))?;
     package.add_certificates(scfg);
 

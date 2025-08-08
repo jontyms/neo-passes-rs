@@ -2,8 +2,11 @@ name: Python Release
 
 on:
   push:
+    branches:
+      - main
     tags:
       - "v*"
+  pull_request:
 
 jobs:
   macos:
@@ -89,8 +92,7 @@ jobs:
           target: ${{ matrix.target }}
           manylinux: auto
           before-script-linux: |
-            apt install libipc-run-perl libssl-dev -y|| echo "not apt"
-            yum install openssl-devel -y|| echo "not yum"
+            apt install libipc-run-perl -y|| echo "not apt"
           args: --release --out dist -m Cargo.toml -i 3.12
       - name: Install built wheel
         if: matrix.target == 'x86_64'
@@ -121,8 +123,7 @@ jobs:
           target: ${{ matrix.target }}
           manylinux: auto
           before-script-linux: |
-            apt install libipc-run-perl libssl-dev -y|| echo "not apt"
-            yum install openssl-devel -y|| echo "not yum"
+            apt install libipc-run-perl -y|| echo "not apt"
           args: --release --out dist -m Cargo.toml -i 3.12
       - uses: uraimo/run-on-arch-action@v3.0.1
         if: matrix.target != 'ppc64'
@@ -165,8 +166,7 @@ jobs:
           target: ${{ matrix.target }}
           manylinux: musllinux_1_2
           before-script-linux: |
-            apt install libipc-run-perl libssl-dev -y|| echo "not apt"
-            yum install openssl-devel -y|| echo "not yum"
+            apt install libipc-run-perl -y|| echo "not apt"
           args: --release --out dist -m Cargo.toml -i 3.12
       - name: Install built wheel
         if: matrix.target == 'x86_64-unknown-linux-musl'
@@ -207,8 +207,7 @@ jobs:
           target: ${{ matrix.platform.target }}
           manylinux: musllinux_1_2
           before-script-linux: |
-            apt install libipc-run-perl libssl-dev -y|| echo "not apt"
-            yum install openssl-devel -y|| echo "not yum"
+            apt install libipc-run-perl -y|| echo "not apt"
           args: --release --out dist -m Cargo.toml -i 3.12
       - uses: uraimo/run-on-arch-action@v3.0.1
         name: Install built wheel
