@@ -33,7 +33,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use chrono::{prelude::*, DateTime, Utc};
+    use chrono::{DateTime, Utc, prelude::*};
     use serde::{Deserialize, Serialize};
 
     #[derive(Serialize, Deserialize, Debug)]

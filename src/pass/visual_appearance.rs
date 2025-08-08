@@ -1,5 +1,5 @@
 use regex::Regex;
-use serde::{de, Deserialize, Serialize};
+use serde::{Deserialize, Serialize, de};
 
 /// Visual appearance of a pass
 #[derive(Serialize, Deserialize, Debug)]

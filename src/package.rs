@@ -4,6 +4,8 @@ use std::{
 };
 
 use crate::pass::Pass;
+use sha2::Digest;
+use x509_cert::der::Encode;
 
 use self::{manifest::Manifest, resource::Resource, sign::SignConfig};
 
@@ -128,26 +130,87 @@ impl Package {
 
         // If SignConfig is provided, make signature
         if let Some(sign_config) = &self.sign_config {
-            // Make signature without signing content
-            let flags = openssl::pkcs7::Pkcs7Flags::DETACHED;
-            // Add WWDR cert to chain
-            let mut certs = openssl::stack::Stack::new().expect("Error while prepare certificate");
-            certs
-                .push(sign_config.cert.clone())
-                .expect("Error while prepare certificate");
+            // Create CMS detached signature using RustCrypto cms
+            // OIDs
+            let oid_sha256 = rsa::pkcs8::ObjectIdentifier::new_unwrap("2.16.840.1.101.3.4.2.1");
+            let oid_pkcs7_data = rsa::pkcs8::ObjectIdentifier::new_unwrap("1.2.840.113549.1.7.1");
+            let oid_signing_time = rsa::pkcs8::ObjectIdentifier::new_unwrap("1.2.840.113549.1.9.5");
 
-            // Signing
-            let pkcs7 = openssl::pkcs7::Pkcs7::sign(
-                &sign_config.sign_cert,
-                &sign_config.sign_key,
-                &certs,
-                manifest_json.as_bytes(),
-                flags,
+            // Build signer identifier from certificate
+            let tbs_cert = sign_config.sign_cert.clone().tbs_certificate;
+            let signer_id = cms::signed_data::SignerIdentifier::IssuerAndSerialNumber(
+                cms::cert::IssuerAndSerialNumber {
+                    issuer: tbs_cert.issuer,
+                    serial_number: tbs_cert.serial_number,
+                },
+            );
+
+            // Encapsulated content info (detached)
+            let encapsulated_content_info = cms::signed_data::EncapsulatedContentInfo {
+                econtent: None,
+                econtent_type: oid_pkcs7_data,
+            };
+
+            // Digest algorithm (SHA-256)
+            let alg_id = x509_cert::spki::AlgorithmIdentifier::<x509_cert::der::Any> {
+                oid: oid_sha256,
+                parameters: Some(x509_cert::der::Any::null()),
+            };
+
+            // External message digest over manifest.json
+            let external_message_digest = Some(sha2::Sha256::digest(manifest_json.as_bytes()));
+
+            // Signer info builder with RSA PKCS#1 v1.5 + SHA-256
+            let signing_key =
+                rsa::pkcs1v15::SigningKey::<sha2::Sha256>::new(sign_config.sign_key.clone());
+            let mut signer_info_builder = cms::builder::SignerInfoBuilder::new(
+                &signing_key,
+                signer_id,
+                alg_id.clone(),
+                &encapsulated_content_info,
+                external_message_digest.as_deref(),
             )
-            .expect("Error while signing package");
+            .expect("Error while preparing signer info");
 
-            // Generate signature
-            let signature_data = pkcs7.to_der().expect("Error while generating signature");
+            // Add signing time attribute
+            let signing_time = cms::attr::SigningTime::UtcTime(
+                x509_cert::der::asn1::UtcTime::from_system_time(std::time::SystemTime::now())
+                    .expect("Error while building signing time"),
+            );
+            let mut time_values: x509_cert::der::asn1::SetOfVec<x509_cert::der::Any> =
+                x509_cert::der::asn1::SetOfVec::new();
+            time_values
+                .insert(
+                    x509_cert::der::Any::encode_from(&signing_time)
+                        .expect("Error encoding signing time"),
+                )
+                .expect("Error inserting signing time");
+            let signing_time_attr = x509_cert::attr::Attribute {
+                oid: oid_signing_time,
+                values: time_values,
+            };
+            signer_info_builder
+                .add_signed_attribute(signing_time_attr)
+                .expect("Error adding signing time attribute");
+
+            // Build CMS SignedData and DER-encode
+            let signature_data = cms::builder::SignedDataBuilder::new(&encapsulated_content_info)
+                .add_certificate(cms::cert::CertificateChoices::Certificate(
+                    sign_config.cert.clone(),
+                ))
+                .expect("Error while adding WWDR certificate")
+                .add_certificate(cms::cert::CertificateChoices::Certificate(
+                    sign_config.sign_cert.clone(),
+                ))
+                .expect("Error while adding signer certificate")
+                .add_signer_info(signer_info_builder)
+                .expect("Error while adding signer info")
+                .add_digest_algorithm(alg_id)
+                .expect("Error while adding digest algorithm")
+                .build()
+                .expect("Error while building CMS signature")
+                .to_der()
+                .expect("Error while generating signature");
 
             // Adding signature to zip
             zip.start_file("signature", options)
