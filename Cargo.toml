@@ -1,10 +1,9 @@
 [package]
 name = "neopasses"
 description = "Rust library for generate Apple Wallet Passes for iOS, WatchOS, MacOS."
-version = "2.0.0-alpha3"
+version = "3.0.0"
 edition = "2024"
 authors = [
-    "Mark Vodyanitskiy <mvodya@icloud.com>",
     "Jstyles <jstyles@styl.dev>",
 ]
 license = "MIT"

@@ -8,12 +8,11 @@ name = "passes_rs_py"
 
 [project]
 name = "passes_rs_py"
-version = "2.0.0-alpha2"
+version = "3.0.0"
 description = "Rust library for generate Apple Wallet Passes for iOS, WatchOS, MacOS."
 readme = "README.md"
 license = { text = "MIT" }
 authors = [
-    { name = "Mark Vodyanitskiy", email = "mvodya@icloud.com" },
     { name = "Jstyles", email = "jstyles@styl.dev" },
 ]
 keywords = ["passkit", "wallet", "apple"]
