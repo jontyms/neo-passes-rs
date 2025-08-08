@@ -99,7 +99,7 @@ jobs:
 
     strategy:
       matrix:
-        target: [aarch64, armv7, s390x, ppc64le, ppc64]
+        target: [aarch64, s390x, ppc64le, ppc64]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -183,8 +183,8 @@ jobs:
         platform:
           - target: aarch64-unknown-linux-musl
             arch: aarch64
-          - target: armv7-unknown-linux-musleabihf
-            arch: armv7
+          #- target: armv7-unknown-linux-musleabihf
+          #  arch: armv7
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
