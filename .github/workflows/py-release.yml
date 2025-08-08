@@ -118,7 +118,7 @@ jobs:
         name: Install built wheel
         with:
           arch: ${{ matrix.target }}
-          distro: ubuntu20.04
+          distro: ubuntu24.04
           githubToken: ${{ github.token }}
           dockerRunArgs: -v ${{ github.workspace }}/dist:/dist
           install: |
