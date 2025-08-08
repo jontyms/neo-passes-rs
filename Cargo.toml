@@ -44,11 +44,11 @@ thiserror = "2.0.12"
 
 [dependencies.pyo3]
 version = "0.25.1"
-features = ["extension-module"] # "macros" is on by default
-
+features = ["extension-module"]
 
 [dev-dependencies]
 rcgen = "0.12"
+openssl = { version = "0.10.64", features = ["vendored"] }
 
 [package.metadata.maturin]
 name = "passes_rs_py"
