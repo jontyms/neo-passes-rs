@@ -11,8 +11,7 @@ on:
 jobs:
   macos:
     runs-on: macos-latest
-    environment:
-      name: py-release
+
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -20,34 +19,25 @@ jobs:
           python-version: 3.12
           architecture: x64
       - uses: dtolnay/rust-toolchain@stable
-      - name: Build wheels - x86_64
-        uses: PyO3/maturin-action@v1
-        with:
-          target: x86_64
-          args: --release --out dist --sdist -m Cargo.toml
-      - name: Install built wheel - x86_64
-        run: |
-          pip install passes_rs_py --no-index --find-links dist --force-reinstall
-          python -c "import passes_rs_py"
+
       - name: Build wheels - universal2
         uses: PyO3/maturin-action@v1
         with:
           target: universal2-apple-darwin
-          args: --release --out dist -m Cargo.toml
+          args: --release --out dist -m Cargo.toml -i 3.12
       - name: Install built wheel - universal2
         run: |
-          pip install passes_rs_py --force-reinstall
+          pip install passes_rs_py --no-index --find-links dist --force-reinstall
           python -c "import passes_rs_py"
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
-          name: wheels
+          name: wheels-macos
           path: dist
 
   windows:
     runs-on: windows-latest
-    environment:
-      name: py-release
+
     strategy:
       matrix:
         target: [x64, x86]
@@ -70,13 +60,12 @@ jobs:
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
-          name: wheels
+          name: wheels-windows-${{ matrix.target }}
           path: dist
 
   linux:
     runs-on: ubuntu-latest
-    environment:
-      name: py-release
+
     strategy:
       matrix:
         target: [x86_64, i686]
@@ -102,13 +91,12 @@ jobs:
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
-          name: wheels
+          name: wheels-linux-${{ matrix.target }}
           path: dist
 
   linux-cross:
     runs-on: ubuntu-latest
-    environment:
-      name: py-release
+
     strategy:
       matrix:
         target: [aarch64, armv7, s390x, ppc64le, ppc64]
@@ -132,23 +120,23 @@ jobs:
           arch: ${{ matrix.target }}
           distro: ubuntu20.04
           githubToken: ${{ github.token }}
+          dockerRunArgs: -v ${{ github.workspace }}/dist:/dist
           install: |
             apt-get update
             apt-get install -y --no-install-recommends python3 python3-pip
             pip3 install -U pip
           run: |
-            pip3 install passes_rs_py --no-index --find-links dist/ --force-reinstall
+            pip3 install passes_rs_py --no-index --find-links /dist/ --force-reinstall
             python3 -c "import passes_rs_py"
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
-          name: wheels
+          name: wheels-linux-cross-${{ matrix.target }}
           path: dist
 
   musllinux:
     runs-on: ubuntu-latest
-    environment:
-      name: py-release
+
     strategy:
       matrix:
         target:
@@ -175,20 +163,21 @@ jobs:
           image: alpine:latest
           options: -v ${{ github.workspace }}:/io -w /io
           run: |
-            apk add py3-pip
-            pip3 install -U pip
-            pip3 install passes_rs_py --no-index --find-links /io/dist/ --force-reinstall
-            python3 -c "import passes_rs_py"
+            apk add python3 py3-pip
+            python3 -m venv /tmp/venv
+            . /tmp/venv/bin/activate
+            pip install -U pip
+            pip install passes_rs_py --no-index --find-links /io/dist/ --force-reinstall
+            python -c "import passes_rs_py"
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
-          name: wheels
+          name: wheels-musllinux-${{ matrix.target }}
           path: dist
 
   musllinux-cross:
     runs-on: ubuntu-latest
-    environment:
-      name: py-release
+
     strategy:
       matrix:
         platform:
@@ -215,16 +204,19 @@ jobs:
           arch: ${{ matrix.platform.arch }}
           distro: alpine_latest
           githubToken: ${{ github.token }}
+          dockerRunArgs: -v ${{ github.workspace }}/dist:/dist
           install: |
-            apk add py3-pip
-            pip3 install -U pip
+            apk add python3 py3-pip
+            python3 -m venv /opt/venv
           run: |
-            pip3 install passes_rs_py --no-index --find-links dist/ --force-reinstall
-            python3 -c "import passes_rs_py"
+            . /opt/venv/bin/activate
+            pip install -U pip
+            pip install passes_rs_py --no-index --find-links /dist/ --force-reinstall
+            python -c "import passes_rs_py"
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
-          name: wheels
+          name: wheels-musllinux-cross-${{ matrix.platform.target }}
           path: dist
 
   release:
@@ -234,10 +226,14 @@ jobs:
       name: py-release
     if: "startsWith(github.ref, 'refs/tags/')"
     needs: [macos, windows, linux, linux-cross, musllinux, musllinux-cross]
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: wheels
+          pattern: wheels-*
+          merge-multiple: true
       - uses: actions/setup-python@v5
         with:
           python-version: 3.12
