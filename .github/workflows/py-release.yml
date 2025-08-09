@@ -17,12 +17,15 @@ jobs:
     permissions:
       contents: read
       actions: write
+    strategy:
+      matrix:
+        python-version: [3.12, 3.13]
 
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: 3.12
+          python-version: ${{ matrix.python-version }}
           architecture: x64
       - uses: dtolnay/rust-toolchain@stable
 
@@ -30,7 +33,7 @@ jobs:
         uses: PyO3/maturin-action@v1
         with:
           target: universal2-apple-darwin
-          args: --release --out dist -m Cargo.toml -i 3.12
+          args: --release --out dist -m Cargo.toml -i ${{ matrix.python-version }}
       - name: Install built wheel - universal2
         run: |
           pip install passes_rs_py --no-index --find-links dist --force-reinstall
@@ -38,7 +41,7 @@ jobs:
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
-          name: wheels-macos
+          name: wheels-macos-${{ matrix.python-version }}
           path: dist
 
   windows:
@@ -50,18 +53,22 @@ jobs:
     strategy:
       matrix:
         target: [x64, x86]
+        python-version: [3.12, 3.13]
+        exclude:
+          - target: x86
+            python-version: 3.13
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: 3.12
+          python-version: ${{ matrix.python-version }}
           architecture: ${{ matrix.target }}
       - uses: dtolnay/rust-toolchain@stable
       - name: Build wheels
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.target }}
-          args: --release --out dist -m Cargo.toml
+          args: --release --out dist -m Cargo.toml -i ${{ matrix.python-version }}
       - name: Install built wheel
         run: |
           pip install passes_rs_py --no-index --find-links dist --force-reinstall
@@ -69,7 +76,7 @@ jobs:
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
-          name: wheels-windows-${{ matrix.target }}
+          name: wheels-windows-${{ matrix.target }}-py${{ matrix.python-version }}
           path: dist
 
   linux:
@@ -83,11 +90,18 @@ jobs:
         target: [x86_64, i686]
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+
+      - name: Build wheels (x86_64 manylinux, py3.12+3.13)
+        if: matrix.target == 'x86_64'
+        uses: PyO3/maturin-action@v1
         with:
-          python-version: 3.12
-          architecture: x64
-      - name: Build wheels
+          target: ${{ matrix.target }}
+          manylinux: auto
+          before-script-linux: |
+            apt install libipc-run-perl -y|| echo "not apt"
+          args: --release --out dist -m Cargo.toml -i 3.12 3.13
+      - name: Build wheels (i686 manylinux, py3.12)
+        if: matrix.target == 'i686'
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.target }}
@@ -95,6 +109,11 @@ jobs:
           before-script-linux: |
             apt install libipc-run-perl -y|| echo "not apt"
           args: --release --out dist -m Cargo.toml -i 3.12
+      - name: Setup Python 3.12 for install test
+        if: matrix.target == 'x86_64'
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.12
       - name: Install built wheel
         if: matrix.target == 'x86_64'
         run: |
@@ -118,9 +137,7 @@ jobs:
         target: [s390x, ppc64le, ppc64]
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: 3.12
+
       - name: Build wheels
         uses: PyO3/maturin-action@v1
         with:
@@ -128,7 +145,7 @@ jobs:
           manylinux: auto
           before-script-linux: |
             apt install libipc-run-perl -y|| echo "not apt"
-          args: --release --out dist -m Cargo.toml -i 3.12
+          args: --release --out dist -m Cargo.toml -i 3.12 3.13
       - uses: uraimo/run-on-arch-action@v3.0.1
         if: matrix.target != 'ppc64'
         name: Install built wheel
@@ -164,11 +181,18 @@ jobs:
           - i686-unknown-linux-musl
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+
+      - name: Build wheels (x86_64 musllinux, py3.12+3.13)
+        if: matrix.target == 'x86_64-unknown-linux-musl'
+        uses: PyO3/maturin-action@v1
         with:
-          python-version: 3.12
-          architecture: x64
-      - name: Build wheels
+          target: ${{ matrix.target }}
+          manylinux: musllinux_1_2
+          before-script-linux: |
+            apt install libipc-run-perl -y|| echo "not apt"
+          args: --release --out dist -m Cargo.toml -i 3.12 3.13
+      - name: Build wheels (i686 musllinux, py3.12)
+        if: matrix.target == 'i686-unknown-linux-musl'
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.target }}
@@ -211,9 +235,7 @@ jobs:
             arch: armv7
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: 3.12
+
       - name: Build wheels
         uses: PyO3/maturin-action@v1
         with:
@@ -246,16 +268,14 @@ jobs:
     runs-on: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
+
       - uses: dtolnay/rust-toolchain@stable
       - name: Build wheels (manylinux)
         uses: PyO3/maturin-action@v1
         with:
           target: aarch64
           manylinux: manylinux_2_28
-          args: --release --out dist -m Cargo.toml -i 3.12
+          args: --release --out dist -m Cargo.toml -i 3.12 3.13
       - name: Install built wheel
         run: |
           pip install --no-index --find-links dist --force-reinstall passes_rs_py
@@ -269,15 +289,13 @@ jobs:
     runs-on: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
+
       - name: Build wheels (musllinux)
         uses: PyO3/maturin-action@v1
         with:
           target: aarch64-unknown-linux-musl
           manylinux: musllinux_1_2
-          args: --release --out dist -m Cargo.toml -i 3.12
+          args: --release --out dist -m Cargo.toml -i 3.12 3.13
       - name: Install built wheel (Alpine)
         uses: addnab/docker-run-action@v3
         with:
@@ -322,9 +340,7 @@ jobs:
           pattern: wheels-*
           merge-multiple: true
           path: dist
-      - uses: actions/setup-python@v5
-        with:
-          python-version: 3.12
+
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
