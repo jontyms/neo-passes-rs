@@ -22,7 +22,7 @@ jobs:
         python-version: [3.12, 3.13]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
@@ -58,7 +58,7 @@ jobs:
           - target: x86
             python-version: 3.13
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
@@ -89,7 +89,7 @@ jobs:
       matrix:
         target: [x86_64, i686]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Build wheels (x86_64 manylinux, py3.12+3.13)
         if: matrix.target == 'x86_64'
@@ -136,7 +136,7 @@ jobs:
       matrix:
         target: [s390x, ppc64le, ppc64]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Build wheels
         uses: PyO3/maturin-action@v1
@@ -180,7 +180,7 @@ jobs:
           - x86_64-unknown-linux-musl
           - i686-unknown-linux-musl
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Build wheels (x86_64 musllinux, py3.12+3.13)
         if: matrix.target == 'x86_64-unknown-linux-musl'
@@ -234,7 +234,7 @@ jobs:
           - target: armv7-unknown-linux-musleabihf
             arch: armv7
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Build wheels
         uses: PyO3/maturin-action@v1
@@ -267,7 +267,7 @@ jobs:
   linux-aarch64:
     runs-on: ubuntu-24.04-arm
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - uses: dtolnay/rust-toolchain@stable
       - name: Build wheels (manylinux)
@@ -288,7 +288,7 @@ jobs:
   musllinux-aarch64:
     runs-on: ubuntu-24.04-arm
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Build wheels (musllinux)
         uses: PyO3/maturin-action@v1
