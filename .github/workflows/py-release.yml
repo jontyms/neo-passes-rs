@@ -113,7 +113,7 @@ jobs:
         if: matrix.target == 'x86_64'
         uses: actions/setup-python@v5
         with:
-          python-version: 3.12
+          python-version: 3.13
       - name: Install built wheel
         if: matrix.target == 'x86_64'
         run: |
