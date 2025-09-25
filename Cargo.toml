@@ -33,7 +33,7 @@ is_empty = "0.3.0"
 regex = "1.11.1"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-zip = "4.3.0"
+zip = "5.0.0"
 cms = { version = "0.2.3", features = ["builder"] }
 rsa = { version = "0.9.8", features = ["sha2"] }
 x509-cert = { version = "0.2.5", features = ["builder"] }
