@@ -1,7 +1,7 @@
 [package]
 name = "neopasses"
 description = "Rust library for generate Apple Wallet Passes for iOS, WatchOS, MacOS."
-version = "3.0.1"
+version = "3.0.2"
 edition = "2024"
 authors = [
     "Jstyles <jstyles@styl.dev>",
@@ -27,27 +27,27 @@ crate-type = ["cdylib", "rlib"]
 
 
 [dependencies]
-chrono = "0.4.41"
+chrono = "0.4.42"
 hex = "0.4.3"
 is_empty = "0.3.0"
-regex = "1.11.1"
+regex = "1.12.2"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-zip = "4.3.0"
+zip = "6.0.0"
 cms = { version = "0.2.3", features = ["builder"] }
 rsa = { version = "0.9.8", features = ["sha2"] }
 x509-cert = { version = "0.2.5", features = ["builder"] }
 sha1 = "0.10.6"
 sha2 = "0.10.9"
-thiserror = "2.0.12"
+thiserror = "2.0.17"
 
 [dependencies.pyo3]
-version = "0.25.1"
+version = "0.27.1"
 features = ["extension-module"]
 
 [dev-dependencies]
-rcgen = "0.12"
-openssl = { version = "0.10.64", features = ["vendored"] }
+rcgen = "0.14"
+openssl = { version = "0.10.74", features = ["vendored"] }
 
 [package.metadata.maturin]
 name = "passes_rs_py"

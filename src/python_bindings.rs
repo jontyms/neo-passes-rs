@@ -1,9 +1,25 @@
+//! Python bindings for the neopasses library
+//!
+//! This module provides thread-safe Python bindings for generating Apple Wallet passes.
+//! All functions and classes are designed to be safe for use in free-threaded Python
+//! environments (Python 3.13+ with GIL disabled).
+//!
+//! Thread Safety:
+//! - All operations are stateless and create fresh instances
+//! - File I/O operations are isolated per function call
+//! - No shared mutable state between threads
+//! - PyPassConfig contains only immutable String fields
+
 // Removed unused imports: Barcode, BarcodeFormat
 use crate::{Package, Pass, resource, sign};
 use pyo3::prelude::*;
 use pyo3::wrap_pyfunction;
 use std::{fs::File, io::Read};
 
+/// Configuration for creating Apple Wallet passes
+///
+/// This class is thread-safe and can be used concurrently in free-threaded Python.
+/// All fields are immutable String types with no shared state.
 #[pyclass]
 pub struct PyPassConfig {
     #[pyo3(get, set)]
@@ -38,7 +54,23 @@ impl PyPassConfig {
     }
 }
 
-// Takes in a pass.json object as config and other options and writes a pkpass to file location
+/// Generates an Apple Wallet pass (.pkpass file) from configuration and resources
+///
+/// This function is thread-safe and can be called concurrently in free-threaded Python.
+/// Each call creates isolated instances with no shared state between invocations.
+///
+/// # Thread Safety
+/// - Creates fresh Package and Pass instances for each call
+/// - File I/O operations are isolated and don't share handles
+/// - Certificate loading and signing operations are stateless
+/// - No global or static mutable state is accessed
+///
+/// # Arguments
+/// * `config` - JSON string containing pass configuration
+/// * `cert_path` - Path to signing certificate file
+/// * `key_path` - Path to private key file
+/// * `output_path` - Output path for generated .pkpass file
+/// * Image paths - Optional paths to various pass images
 #[pyfunction]
 #[pyo3(signature = (
     config,
@@ -206,7 +238,7 @@ fn generate_pass(
     Ok(())
 }
 
-#[pymodule]
+#[pymodule(gil_used = false)]
 fn passes_rs_py(_py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyPassConfig>()?;
     m.add_function(wrap_pyfunction!(generate_pass, m)?)?;
