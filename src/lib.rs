@@ -49,6 +49,16 @@
 //!     sign::SignConfig::new(neopasses::sign::WWDR::G4, &sign_cert_data, &sign_cert_key_data)
 //!         .unwrap();
 //! package.add_certificates(sign_config);
+//!
+//! // Certificate expiration validation
+//! // By default, SignConfig::new() will throw an error if the certificate is expired
+//! // Use SignConfig::new_with_options() to ignore expired certificates:
+//! // let sign_config = sign::SignConfig::new_with_options(
+//! //     neopasses::sign::WWDR::G4,
+//! //     &sign_cert_data,
+//! //     &sign_cert_key_data,
+//! //     true // ignore_expired = true
+//! // ).unwrap();
 //! ```
 //!
 //! You can save package as .pkpass file:

@@ -4,6 +4,7 @@ use std::{
 };
 
 use crate::pass::Pass;
+use crate::error::PassError;
 use sha2::Digest;
 use x509_cert::der::Encode;
 
@@ -86,6 +87,13 @@ impl Package {
     /// Add certificates for signing package
     pub fn add_certificates(&mut self, config: SignConfig) {
         self.sign_config = Some(config);
+    }
+
+    /// Add certificates for signing package with options for expired certificate handling
+    pub fn add_certificates_with_options(&mut self, wwdr: &sign::WWDR, sign_cert: &[u8], sign_key: &str, ignore_expired: bool) -> Result<(), PassError> {
+        let config = SignConfig::new_with_options(wwdr, sign_cert, sign_key, ignore_expired)?;
+        self.sign_config = Some(config);
+        Ok(())
     }
 
     /// Write compressed package.

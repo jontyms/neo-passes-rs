@@ -20,6 +20,8 @@ pub enum PassError {
     CmsBuilder(cms::builder::Error),
     #[error("Failed to parse certificate or key")]
     CertificateParse(rsa::pkcs8::Error),
+    #[error("Certificate has expired")]
+    CertificateExpired,
 }
 
 impl From<rsa::pkcs8::Error> for PassError {

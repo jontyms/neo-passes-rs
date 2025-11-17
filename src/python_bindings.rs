@@ -70,6 +70,7 @@ impl PyPassConfig {
 /// * `cert_path` - Path to signing certificate file
 /// * `key_path` - Path to private key file
 /// * `output_path` - Output path for generated .pkpass file
+/// * `ignore_expired` - Whether to ignore expired certificates (default: false)
 /// * Image paths - Optional paths to various pass images
 #[pyfunction]
 #[pyo3(signature = (
@@ -77,6 +78,7 @@ impl PyPassConfig {
     cert_path,
     key_path,
     output_path,
+    ignore_expired = false,
     icon_path = None,
     icon2x_path = None,
     logo_path = None,
@@ -95,6 +97,7 @@ fn generate_pass(
     cert_path: &str,
     key_path: &str,
     output_path: &str,
+    ignore_expired: bool,
     icon_path: Option<&str>,
     icon2x_path: Option<&str>,
     logo_path: Option<&str>,
@@ -224,7 +227,7 @@ fn generate_pass(
     let pem_str = std::str::from_utf8(&key).map_err(|e| {
         PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Key is not valid UTF-8 PEM: {e}"))
     })?;
-    let scfg = sign::SignConfig::new(&sign::WWDR::G4, &cert, pem_str)
+    let scfg = sign::SignConfig::new_with_options(&sign::WWDR::G4, &cert, pem_str, ignore_expired)
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Sign cfg: {e}")))?;
     package.add_certificates(scfg);
 

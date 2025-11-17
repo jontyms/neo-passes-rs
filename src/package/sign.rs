@@ -3,6 +3,7 @@ use x509_cert::{
     Certificate,
     der::{Decode, DecodePem},
 };
+use std::time::SystemTime;
 
 use crate::error::PassError;
 
@@ -20,14 +21,33 @@ pub struct SignConfig {
 impl SignConfig {
     /// Create new config from buffers
     /// # Errors
-    /// Returns `PassError` when the certs and keys cannot be loaded
+    /// Returns `PassError` when the certs and keys cannot be loaded or if certificate is expired
     pub fn new(wwdr: &WWDR, sign_cert: &[u8], sign_key: &str) -> Result<SignConfig, PassError> {
+        Self::new_with_options(wwdr, sign_cert, sign_key, false)
+    }
+
+    /// Create new config from buffers with option to ignore expired certificates
+    /// # Errors
+    /// Returns `PassError` when the certs and keys cannot be loaded or if certificate is expired (unless ignored)
+    pub fn new_with_options(wwdr: &WWDR, sign_cert: &[u8], sign_key: &str, ignore_expired: bool) -> Result<SignConfig, PassError> {
         let cert = match wwdr {
             WWDR::G4 => Certificate::from_der(G4_CERT)?,
             WWDR::Custom(buf) => Certificate::from_pem(buf)?,
         };
         let sign_cert = Certificate::from_pem(sign_cert)?;
         let sign_key = RsaPrivateKey::from_pkcs8_pem(sign_key)?;
+
+        // Check certificate validity unless ignored
+        if !ignore_expired {
+            let validity = &sign_cert.tbs_certificate.validity;
+            let now = SystemTime::now();
+
+            // Check if certificate is expired
+            let not_after_time = validity.not_after.to_system_time();
+            if now > not_after_time {
+                return Err(PassError::CertificateExpired);
+            }
+        }
 
         Ok(SignConfig {
             sign_key,
@@ -119,5 +139,84 @@ mod tests {
         let pem_str = std::str::from_utf8(sign_key).expect("PEM is not valid UTF-8");
 
         let _ = SignConfig::new(&WWDR::G4, sign_cert, pem_str).unwrap();
+    }
+
+    #[test]
+    fn test_expired_certificate_validation() {
+        // Generate expired certificate
+        let (sign_cert, sign_key) = make_expired_cert().unwrap();
+
+        let sign_cert = &sign_cert.to_pem().unwrap();
+        let sign_key = &sign_key.private_key_to_pem_pkcs8().unwrap();
+        let pem_str = std::str::from_utf8(sign_key).expect("PEM is not valid UTF-8");
+
+        // Should fail with expired certificate
+        let result = SignConfig::new(&WWDR::G4, sign_cert, pem_str);
+        assert!(matches!(result, Err(crate::error::PassError::CertificateExpired)));
+
+        // Should succeed when ignoring expired certificates
+        let result = SignConfig::new_with_options(&WWDR::G4, sign_cert, pem_str, true);
+        assert!(result.is_ok());
+    }
+
+    /// Make expired x509 certificate and private key
+    fn make_expired_cert() -> Result<(X509, PKey<Private>), ErrorStack> {
+        let rsa = Rsa::generate(2048)?;
+        let key_pair = PKey::from_rsa(rsa)?;
+
+        let mut x509_name = openssl::x509::X509NameBuilder::new()?;
+        x509_name.append_entry_by_text("C", "RU")?;
+        x509_name.append_entry_by_text("ST", "Primorskii krai")?;
+        x509_name.append_entry_by_text("O", "Some organization")?;
+        x509_name.append_entry_by_text("CN", "EXPIRED CERT TEST")?;
+        let x509_name = x509_name.build();
+
+        let mut cert_builder = X509::builder()?;
+        cert_builder.set_version(2)?;
+        let serial_number = {
+            let mut serial = openssl::bn::BigNum::new()?;
+            serial.rand(159, openssl::bn::MsbOption::MAYBE_ZERO, false)?;
+            serial.to_asn1_integer()?
+        };
+        cert_builder.set_serial_number(&serial_number)?;
+        cert_builder.set_subject_name(&x509_name)?;
+        cert_builder.set_issuer_name(&x509_name)?;
+        cert_builder.set_pubkey(&key_pair)?;
+
+        // Set certificate to be expired (valid from 2 days ago to 1 day ago)
+        let two_days_ago = std::time::SystemTime::now() - std::time::Duration::from_secs(2 * 24 * 60 * 60);
+        let one_day_ago = std::time::SystemTime::now() - std::time::Duration::from_secs(1 * 24 * 60 * 60);
+
+        let not_before = openssl::asn1::Asn1Time::from_unix(
+            two_days_ago.duration_since(std::time::UNIX_EPOCH).unwrap().as_secs() as i64
+        )?;
+        cert_builder.set_not_before(&not_before)?;
+        let not_after = openssl::asn1::Asn1Time::from_unix(
+            one_day_ago.duration_since(std::time::UNIX_EPOCH).unwrap().as_secs() as i64
+        )?;
+        cert_builder.set_not_after(&not_after)?;
+
+        cert_builder.append_extension(
+            openssl::x509::extension::BasicConstraints::new()
+                .critical()
+                .ca()
+                .build()?,
+        )?;
+        cert_builder.append_extension(
+            openssl::x509::extension::KeyUsage::new()
+                .critical()
+                .key_cert_sign()
+                .crl_sign()
+                .build()?,
+        )?;
+
+        let subject_key_identifier = openssl::x509::extension::SubjectKeyIdentifier::new()
+            .build(&cert_builder.x509v3_context(None, None))?;
+        cert_builder.append_extension(subject_key_identifier)?;
+
+        cert_builder.sign(&key_pair, openssl::hash::MessageDigest::sha256())?;
+        let cert = cert_builder.build();
+
+        Ok((cert, key_pair))
     }
 }
