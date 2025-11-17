@@ -8,7 +8,7 @@ name = "passes_rs_py"
 
 [project]
 name = "passes_rs_py"
-version = "4.0.0"
+version = "4.0.1"
 description = "Rust library for generate Apple Wallet Passes for iOS, WatchOS, MacOS."
 readme = "README.md"
 license = { text = "MIT" }
