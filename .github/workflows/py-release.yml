@@ -22,7 +22,7 @@ jobs:
         python-version: [3.12, 3.13, 3.14, 3.13t, 3.14t]
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
@@ -54,7 +54,7 @@ jobs:
       matrix:
         python-version: [3.12, 3.13, 3.14, 3.13t, 3.14t]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
@@ -82,7 +82,7 @@ jobs:
       actions: write
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Build wheels (x86_64 manylinux)
         uses: PyO3/maturin-action@v1
@@ -113,7 +113,7 @@ jobs:
       actions: write
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Build wheels (x86_64 musllinux)
         uses: PyO3/maturin-action@v1
@@ -144,7 +144,7 @@ jobs:
   linux-aarch64:
     runs-on: ubuntu-24.04-arm
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - uses: dtolnay/rust-toolchain@stable
       - name: Build wheels (manylinux)
@@ -166,7 +166,7 @@ jobs:
   musllinux-aarch64:
     runs-on: ubuntu-24.04-arm
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Build wheels (musllinux)
         uses: PyO3/maturin-action@v1
