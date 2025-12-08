@@ -15,6 +15,32 @@ Documentation:
 - [Examples](https://github.com/mvodya/passes-rs/tree/main/examples)
 - [Apple Wallet Documentation](https://developer.apple.com/documentation/walletpasses)
 
+## Platform Support
+
+The Python bindings (`passes-rs-py`) support the following platforms and Python versions:
+
+### Python Versions
+- **Python 3.12** (including free-threaded builds)
+- **Python 3.13** (including free-threaded builds)
+- **Python 3.14** (including free-threaded builds)
+
+### Supported Platforms
+
+**Windows:**
+- Windows x86-64
+
+**macOS:**
+- macOS 10.12+ (x86-64)
+- macOS 11.0+ (ARM64/Apple Silicon)
+- Universal2 binaries (ARM64 + x86-64)
+
+**Linux:**
+- x86-64 (glibc 2.17+)
+- ARM64/aarch64 (glibc 2.28+)
+- musl libc (x86-64 and ARM64)
+
+Pre-built wheels are available on PyPI for all supported platforms. For other platforms, the package can be built from source using `maturin`.
+
 ## Developer Setup
 
 ### Quick Start (Recommended)
