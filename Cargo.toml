@@ -27,27 +27,27 @@ crate-type = ["cdylib", "rlib"]
 
 
 [dependencies]
-chrono = "0.4.42"
+chrono = "0.4.44"
 hex = "0.4.3"
 is_empty = "0.3.0"
-regex = "1.12.2"
+regex = "1.12.3"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 zip = "6.0.0"
 cms = { version = "0.2.3", features = ["builder"] }
-rsa = { version = "0.9.9", features = ["sha2"] }
+rsa = { version = "0.9.10", features = ["sha2"] }
 x509-cert = { version = "0.2.5", features = ["builder"] }
 sha1 = "0.10.6"
 sha2 = "0.10.9"
-thiserror = "2.0.17"
+thiserror = "2.0.18"
 
 [dependencies.pyo3]
-version = "0.27.1"
+version = "0.27.2"
 features = ["extension-module"]
 
 [dev-dependencies]
 rcgen = "0.14"
-openssl = { version = "0.10.74", features = ["vendored"] }
+openssl = { version = "0.10.80", features = ["vendored"] }
 
 [package.metadata.maturin]
 name = "passes_rs_py"
