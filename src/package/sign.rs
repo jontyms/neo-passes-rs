@@ -1,9 +1,9 @@
 use rsa::{RsaPrivateKey, pkcs8::DecodePrivateKey};
+use std::time::SystemTime;
 use x509_cert::{
     Certificate,
     der::{Decode, DecodePem},
 };
-use std::time::SystemTime;
 
 use crate::error::PassError;
 
@@ -29,12 +29,24 @@ impl SignConfig {
     /// Create new config from buffers with option to ignore expired certificates
     /// # Errors
     /// Returns `PassError` when the certs and keys cannot be loaded or if certificate is expired (unless ignored)
-    pub fn new_with_options(wwdr: &WWDR, sign_cert: &[u8], sign_key: &str, ignore_expired: bool) -> Result<SignConfig, PassError> {
+    pub fn new_with_options(
+        wwdr: &WWDR,
+        sign_cert: &[u8],
+        sign_key: &str,
+        ignore_expired: bool,
+    ) -> Result<SignConfig, PassError> {
         let cert = match wwdr {
             WWDR::G4 => Certificate::from_der(G4_CERT)?,
             WWDR::Custom(buf) => Certificate::from_pem(buf)?,
         };
-        let sign_cert = Certificate::from_pem(sign_cert)?;
+        let sign_cert_trimmed: &[u8] = {
+            let end = sign_cert
+                .iter()
+                .rposition(|b| !b.is_ascii_whitespace())
+                .map_or(0, |i| i + 1);
+            &sign_cert[..end]
+        };
+        let sign_cert = Certificate::from_pem(sign_cert_trimmed)?;
         let sign_key = RsaPrivateKey::from_pkcs8_pem(sign_key)?;
 
         // Check certificate validity unless ignored
@@ -152,7 +164,10 @@ mod tests {
 
         // Should fail with expired certificate
         let result = SignConfig::new(&WWDR::G4, sign_cert, pem_str);
-        assert!(matches!(result, Err(crate::error::PassError::CertificateExpired)));
+        assert!(matches!(
+            result,
+            Err(crate::error::PassError::CertificateExpired)
+        ));
 
         // Should succeed when ignoring expired certificates
         let result = SignConfig::new_with_options(&WWDR::G4, sign_cert, pem_str, true);
@@ -184,15 +199,23 @@ mod tests {
         cert_builder.set_pubkey(&key_pair)?;
 
         // Set certificate to be expired (valid from 2 days ago to 1 day ago)
-        let two_days_ago = std::time::SystemTime::now() - std::time::Duration::from_secs(2 * 24 * 60 * 60);
-        let one_day_ago = std::time::SystemTime::now() - std::time::Duration::from_secs(1 * 24 * 60 * 60);
+        let two_days_ago =
+            std::time::SystemTime::now() - std::time::Duration::from_secs(2 * 24 * 60 * 60);
+        let one_day_ago =
+            std::time::SystemTime::now() - std::time::Duration::from_secs(1 * 24 * 60 * 60);
 
         let not_before = openssl::asn1::Asn1Time::from_unix(
-            two_days_ago.duration_since(std::time::UNIX_EPOCH).unwrap().as_secs() as i64
+            two_days_ago
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_secs() as i64,
         )?;
         cert_builder.set_not_before(&not_before)?;
         let not_after = openssl::asn1::Asn1Time::from_unix(
-            one_day_ago.duration_since(std::time::UNIX_EPOCH).unwrap().as_secs() as i64
+            one_day_ago
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_secs() as i64,
         )?;
         cert_builder.set_not_after(&not_after)?;
 

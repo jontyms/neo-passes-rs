@@ -112,7 +112,9 @@ fn generate_pass(
     footer2x_path: Option<&str>,
 ) -> PyResult<()> {
     /* -------- build pass -------- */
-    let pass = Pass::from_json(config).unwrap();
+    let pass = Pass::from_json(config).map_err(|e| {
+        PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Invalid pass config: {e}"))
+    })?;
 
     let mut package = Package::new(pass);
 
