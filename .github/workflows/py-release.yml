@@ -95,7 +95,7 @@ jobs:
       - name: Setup Python 3.12 for install test
         uses: actions/setup-python@v6
         with:
-          python-version: 3.12
+          python-version: 3.14
       - name: Install built wheel
         run: |
           pip install passes_rs_py --no-index --find-links dist --force-reinstall
